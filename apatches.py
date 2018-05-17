@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 import sys
+from collections import defaultdict
 
 import openpyxl
 
@@ -126,6 +127,12 @@ if __name__ == '__main__':
     # os.chdir("C:\\Users\\admin\\Desktop")
 
 
+    # use map to record the state of each patch.
+    # key is patch name
+    # value is a list, list[0] records patch was merged or not.
+    # list[1] records why not apply this time.
+    patches_info = defaultdict(list)
+
     # get the change id of every patch
     # and then search in the git log
     # if can be found, it means that this patch has applied before.
@@ -133,8 +140,15 @@ if __name__ == '__main__':
     need_apply_patches = []
     for f in get_all_files(patches_folder):
         change_id = get_change_id(f)
+        prefixless = f[len(patches_folder):]
         if not has_change_id(gitlog(), change_id):
+            patches_info[prefixless].append('unkown')  # list[0]
+            patches_info[prefixless].append('unkown')  # list[1]
             need_apply_patches.append(f)
+        else:
+            patches_info[prefixless].append('not applied')
+            patches_info[prefixless].append('already exist')
+
 
     need_apply_patches.sort()
     if not need_apply_patches:
