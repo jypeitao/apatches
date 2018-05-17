@@ -49,6 +49,15 @@ def has_change_id(content, change_id):
         return False
 
 
+def has_error(content):
+    reg = r"error:"
+    m = re.search(reg, content)
+    if m:
+        return True
+    else:
+        return False
+
+
 def get_change_id(patch):
     cid = None
     with open(patch) as f:
@@ -113,11 +122,11 @@ if __name__ == '__main__':
 
     # print(need_apply_patches)
     # for patch in need_apply_patches:
-    #     print(get_git_directory(patch[len(patches_folder) + 1:]))
+    #     print(get_git_directory(patch[len(patches_folder)]))
 
     patch = need_apply_patches[0]
     print(patch)
-    cmd = "git am --directory=" + get_git_directory(patch[len(patches_folder) + 1:]) + " -k " + patch
+    cmd = "git am --directory=" + get_git_directory(patch[len(patches_folder)]) + " -k " + patch
     print(cmd)
     # shell_exc(cmd)
 
