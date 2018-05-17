@@ -15,6 +15,7 @@ def get_all_files(top):
             # all_files.append(os.path.join(dirpath[len(top) + 1:], file))
             all_files.append(os.path.join(dirpath, file))
 
+    all_files.sort()
     return all_files
 
 
@@ -95,6 +96,21 @@ def get_git_directory(patch):
     return git_directory
 
 
+def color_string(content, color):
+    COLOR = { 
+            'black': 30,   # 黑色
+            'red': 31,   # 红色
+            'green': 32,   # 绿色
+            'yellow': 33,   # 黄色
+            'blue': 34,   # 蓝色
+            'purple': 35,   # 紫红色
+            'cyan': 36,   # 青蓝色
+            'white': 37,   # 白色
+    }
+    cstring = "\033[0;" + str(COLOR[color]) + "m" + content + "\033[0m"
+    return cstring
+
+
 def apply_patch(patch):
     cmd = "git am --directory=" + get_git_directory(patch) + " -k " + patch
     print(cmd)
@@ -121,21 +137,25 @@ if __name__ == '__main__':
             need_apply_patches.append(f)
 
     need_apply_patches.sort()
+    if not need_apply_patches:
+        print(color_string("No patch needs to be applied.", 'green'))
+        exit(0)
 
     # begin to apply patch one by one 
     total_patches = len(need_apply_patches)
     for i in range(1, total_patches + 1):
         patch = need_apply_patches[i - 1]
-        print("\033[0;32mApplying: [" + str(i) + "/" + str(total_patches) + "]\033[0m" + patch)
+        print(color_string("Applying: [" + str(i) + "/" + str(total_patches) + "]", 'green') + patch)
         cmd = "git am --directory=" + get_git_directory(patch[len(patches_folder):]) + " -k " + patch
         git_result = shell_exc(cmd)
         #print(git_result)
         #print(cmd)
         if has_error(git_result):
             shell_exc("git am --abort")
-            print("\033[0;31mError: Already applied " + str(i - 1) +", " + str(total_patches -i +1) +" left to apply.\033[0m")
-            print("\033[0;31mPlease manually execute:" + cmd + " and fix it.\033[0m")
-            print("\033[0;31mThen re-execute the command:" + sys.argv[0] + " " + sys.argv[1] + "\033[0m")
+            error_info = "Error: Already applied " + str(i - 1) +", " + str(total_patches -i +1) + " left to apply."
+            print(color_string("Error: Already applied " + str(i - 1) +", " + str(total_patches -i +1) + " left to apply.", 'red'))
+            print(color_string("Please manually execute:" + cmd + " and fix it.", 'red'))
+            print(color_string("Then re-execute the command:" + sys.argv[0] + " " + sys.argv[1], 'red'))
             exit(-1)
 
     # just test
