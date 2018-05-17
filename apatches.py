@@ -104,14 +104,16 @@ if __name__ == '__main__':
         print('''Usage: apatches your_patches_folder''')
         exit(-1)
 
-    patches_folder = sys.argv[1]
+    # make sure the path has a sep
+    patches_folder = os.path.join(sys.argv[1], "")
     # old_cwd = os.getcwd()
     # os.chdir("C:\\Users\\admin\\Desktop")
 
 
-    # 获取将要打的patches
-    # 根据change id在git log中查看patch的change id是否已经存在
-    # 存在表示之前已经打过该patch，不需要再打
+    # get the change id of every patch
+    # and then search in the git log
+    # if can be found, it means that this patch has applied before.
+    # Add the previously unapplied to the list.
     need_apply_patches = []
     for f in get_all_files(patches_folder):
         change_id = get_change_id(f)
@@ -120,13 +122,20 @@ if __name__ == '__main__':
 
     need_apply_patches.sort()
 
-    # print(need_apply_patches)
+    # begin to apply patch one by one 
     # for patch in need_apply_patches:
-    #     print(get_git_directory(patch[len(patches_folder)]))
+    #     cmd = "git am --directory=" + get_git_directory(patch[len(patches_folder):]) + " -k " + patch
+    #     git_result = shell_exc(cmd)
+    #     if has_error(git_result):
+    #         exit(-1)
 
+    # just test
     patch = need_apply_patches[0]
     print(patch)
-    cmd = "git am --directory=" + get_git_directory(patch[len(patches_folder)]) + " -k " + patch
+    cmd = "git am --directory=" + get_git_directory(patch[len(patches_folder):]) + " -k " + patch
     print(cmd)
-    # shell_exc(cmd)
+    git_result = shell_exc(cmd)
+    print(git_result)
+    if has_error(git_result):
+        exit(-1)
 
