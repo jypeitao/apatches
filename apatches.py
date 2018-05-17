@@ -123,19 +123,27 @@ if __name__ == '__main__':
     need_apply_patches.sort()
 
     # begin to apply patch one by one 
-    # for patch in need_apply_patches:
-    #     cmd = "git am --directory=" + get_git_directory(patch[len(patches_folder):]) + " -k " + patch
-    #     git_result = shell_exc(cmd)
-    #     if has_error(git_result):
-    #         exit(-1)
+    total_patches = len(need_apply_patches)
+    for i in range(1, total_patches + 1):
+        patch = need_apply_patches[i - 1]
+        print("\033[0;32mApplying: [" + str(i) + "/" + str(total_patches) + "]\033[0m" + patch)
+        cmd = "git am --directory=" + get_git_directory(patch[len(patches_folder):]) + " -k " + patch
+        git_result = shell_exc(cmd)
+        #print(git_result)
+        #print(cmd)
+        if has_error(git_result):
+            shell_exc("git am --abort")
+            print("\033[0;31mError: Already applied " + str(i - 1) +", " + str(total_patches -i +1) +" left to apply.\033[0m")
+            print("\033[0;31mPlease manually execute:" + cmd + " and fix it.\033[0m")
+            print("\033[0;31mThen re-execute the command:" + sys.argv[0] + " " + sys.argv[1] + "\033[0m")
+            exit(-1)
 
     # just test
-    patch = need_apply_patches[0]
-    print(patch)
-    cmd = "git am --directory=" + get_git_directory(patch[len(patches_folder):]) + " -k " + patch
-    print(cmd)
-    git_result = shell_exc(cmd)
-    print(git_result)
-    if has_error(git_result):
-        exit(-1)
-
+    #patch = need_apply_patches[0]
+    #print(patch)
+    #cmd = "git am --directory=" + get_git_directory(patch[len(patches_folder):]) + " -k " + patch
+    #print(cmd)
+    #git_result = shell_exc(cmd)
+    #print(git_result)
+    #if has_error(git_result):
+    #    exit(-1)
