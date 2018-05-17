@@ -80,6 +80,16 @@ def shell_exc(cmd):
     return stdo + stde
 
 
+def get_git_directory(patch):
+    dir_name = os.path.dirname(patch)
+    git_directory = os.path.join("LINUX", "android", dir_name)
+    return git_directory
+
+
+def apply_patch(patch):
+    cmd = "git am --directory=" + get_git_directory(patch) + " -k " + patch
+    print(cmd)
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print('''Usage: apatches your_patches_folder''')
@@ -101,6 +111,13 @@ if __name__ == '__main__':
 
     need_apply_patches.sort()
 
-    print(need_apply_patches)
+    # print(need_apply_patches)
+    # for patch in need_apply_patches:
+    #     print(get_git_directory(patch[len(patches_folder) + 1:]))
 
-    # os.chdir(old_cwd)
+    patch = need_apply_patches[0]
+    print(patch)
+    cmd = "git am --directory=" + get_git_directory(patch[len(patches_folder) + 1:]) + " -k " + patch
+    print(cmd)
+    # shell_exc(cmd)
+
