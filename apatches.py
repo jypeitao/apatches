@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
 import os
 import re
+import subprocess
 import sys
 
 import openpyxl
@@ -59,44 +62,45 @@ def get_change_id(patch):
     return cid
 
 
-# write_to_excel('io_patches.xlsx', get_all_files('patch'), 'patch\\')
-# get_all_files('patch')
-# allfiles = get_all_files('patch')
-# for f in allfiles:
-#     print(search_change_id(f))
-#
-# str = "I8527abaab1d0fb3affaf27ae42d0b01fc4531d35"
-# with open('log') as f:
-#     reg = r"Change-Id: (" + str + ")"
-#     print(reg)
-#     m = re.search(reg, f.read())
-#     if m:
-#         cid = m.group(1)
-#         print(cid)
-#     else:
-#         print("No Change-Id")
+def gitlog():
+    cmd = "git log"
+    return shell_exc(cmd)
 
-print(__name__)
+
+def shell_exc(cmd):
+    sp = subprocess.Popen(cmd,
+                          shell=True,
+                          stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE,
+                          bufsize=-1)
+
+    result = sp.communicate()
+    stdo = result[0].decode('utf-8')
+    stde = result[1].decode('utf-8')
+    return stdo + stde
+
 
 if __name__ == '__main__':
-    print(len(sys.argv))
     if len(sys.argv) < 2:
         print('''Usage: apatches your_patches_folder''')
         exit(-1)
 
     patches_folder = sys.argv[1]
+    # old_cwd = os.getcwd()
+    # os.chdir("C:\\Users\\admin\\Desktop")
 
-    print(os.getcwd())
-    old_cwd = os.getcwd()
-    os.chdir("C:\\Users\\admin\\Desktop")
-    print(os.getcwd())
 
+    # 获取将要打的patches
     # 根据change id在git log中查看patch的change id是否已经存在
-    # 存在表示之前已经打过该patch，不需要再打，把还需要打的patch放到not_apply_files
-    content = "git log"
-    not_apply_files = []
+    # 存在表示之前已经打过该patch，不需要再打
+    need_apply_patches = []
     for f in get_all_files(patches_folder):
         change_id = get_change_id(f)
-        if not has_change_id(content, change_id):
-            not_apply_files.append(f)
-            print(f)
+        if not has_change_id(gitlog(), change_id):
+            need_apply_patches.append(f)
+
+    need_apply_patches.sort()
+
+    print(need_apply_patches)
+
+    # os.chdir(old_cwd)
